@@ -59,11 +59,10 @@ const canvas = document.getElementById('preview-canvas');
 const ctx    = canvas.getContext('2d');
 
 function getPreviewDims(ratio) {
-  const r = RATIOS[ratio];
-  const padding  = 64;  // 2rem each side
-  const controlsH = 220; // approx height of controls + gaps
-  const maxH = Math.min(window.innerHeight - controlsH, 520);
-  const maxW = window.innerWidth - padding;
+  const r    = RATIOS[ratio];
+  const wrap = document.getElementById('preview-wrap');
+  const maxW = wrap.clientWidth;
+  const maxH = wrap.clientHeight;
   const fromH = { w: Math.round(maxH * r.w / r.h), h: maxH };
   const fromW = { w: maxW, h: Math.round(maxW * r.h / r.w) };
   if (fromH.w <= maxW) return fromH;

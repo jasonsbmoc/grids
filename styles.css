@@ -2,19 +2,23 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   background: #fff;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2.5rem 2rem;
+  justify-content: flex-start;
+  padding: 1.5rem 1.5rem;
+  overflow: hidden;
 }
 #preview-wrap {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-bottom: 2rem;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 1.5rem;
 }
 #preview-canvas {
   border: 1px solid #D0CBBE;
