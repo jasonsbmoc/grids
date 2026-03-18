@@ -1,4 +1,4 @@
-# Paper Grid Generator
+# Grids
 
 A browser-based tool for generating paper grid backgrounds. Choose your aspect ratio, grid style, density, and paper color, then export as a high-resolution JPEG or copy as SVG.
 
