@@ -324,10 +324,19 @@ document.getElementById('btn-download').addEventListener('click', () => {
   off.width  = r.exportW;
   off.height = r.exportH;
   drawGrid(off, off.getContext('2d'), BG_COLOR, GRID_COLOR, state.style, state.density);
-  const link = document.createElement('a');
-  link.download = 'grid-' + state.ratio + '-' + state.style + '-d' + state.density + '.jpg';
-  link.href = off.toDataURL('image/jpeg', 0.95);
-  link.click();
+  const filename = 'grid-' + state.ratio.replace(':', 'x') + '-' + state.style + '-d' + state.density + '.jpg';
+  off.toBlob(blob => {
+    const file = new File([blob], filename, { type: 'image/jpeg' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file] }).catch(() => {});
+    } else {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+  }, 'image/jpeg', 0.95);
 });
 
 document.getElementById('btn-copy-svg').addEventListener('click', () => {
