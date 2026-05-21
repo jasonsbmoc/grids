@@ -43,12 +43,31 @@ PALETTE.forEach((color, i) => {
   swatchRow.appendChild(sw);
 });
 
+const CUSTOM_MIN = 200;
+const CUSTOM_MAX = 4000;
+let customDims = { w: 1200, h: 800 };
+let customEdited = false;
+
 const RATIOS = {
-  '16:9': { w: 16, h: 9,  exportW: 1920, exportH: 1080 },
-  '1:1':  { w: 1,  h: 1,  exportW: 1080, exportH: 1080 },
-  '4:5':  { w: 4,  h: 5,  exportW: 1080, exportH: 1350 },
-  '9:16': { w: 9,  h: 16, exportW: 1080, exportH: 1920 }
+  '16:9':   { w: 16, h: 9,  exportW: 1920, exportH: 1080 },
+  '1:1':    { w: 1,  h: 1,  exportW: 1080, exportH: 1080 },
+  '4:5':    { w: 4,  h: 5,  exportW: 1080, exportH: 1350 },
+  '9:16':   { w: 9,  h: 16, exportW: 1080, exportH: 1920 },
+  'custom': { w: customDims.w, h: customDims.h, exportW: customDims.w, exportH: customDims.h }
 };
+
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function applyCustomDims(w, h) {
+  customDims.w = clamp(Math.round(w), CUSTOM_MIN, CUSTOM_MAX);
+  customDims.h = clamp(Math.round(h), CUSTOM_MIN, CUSTOM_MAX);
+  RATIOS.custom.w = customDims.w;
+  RATIOS.custom.h = customDims.h;
+  RATIOS.custom.exportW = customDims.w;
+  RATIOS.custom.exportH = customDims.h;
+}
 
 const DENSITY_MIN = 1;
 const DENSITY_MAX = 20;
@@ -295,12 +314,81 @@ window.addEventListener('load', () => {
   initPill('style-toggle');
 });
 
+const customPopover = document.getElementById('custom-popover');
+const customWInput  = document.getElementById('custom-w');
+const customHInput  = document.getElementById('custom-h');
+const customLabel   = document.querySelector('[data-ratio="custom"] .ratio-label');
+
+function updateCustomLabel() {
+  customLabel.textContent = customEdited
+    ? `${customDims.w}×${customDims.h}`
+    : 'Custom';
+}
+
+function openCustomPopover() {
+  customWInput.value = customDims.w;
+  customHInput.value = customDims.h;
+  customPopover.hidden = false;
+  // focus after the click handler settles so the input is selectable
+  requestAnimationFrame(() => {
+    customWInput.focus();
+    customWInput.select();
+  });
+}
+
+function commitCustomPopover() {
+  const w = parseInt(customWInput.value, 10);
+  const h = parseInt(customHInput.value, 10);
+  if (!Number.isNaN(w) && !Number.isNaN(h)) {
+    applyCustomDims(w, h);
+    customEdited = true;
+    updateCustomLabel();
+    if (state.ratio === 'custom') updatePreview();
+  }
+  customPopover.hidden = true;
+}
+
+function cancelCustomPopover() {
+  customPopover.hidden = true;
+}
+
 document.getElementById('ratio-toggle').addEventListener('click', e => {
   const item = e.target.closest('.toggle-item');
   if (!item) return;
-  state.ratio = item.dataset.ratio;
+  const ratio = item.dataset.ratio;
+  const wasCustomActive = state.ratio === 'custom';
+  state.ratio = ratio;
   setActiveToggle('ratio-toggle', state.ratio, 'ratio');
   updatePreview();
+
+  if (ratio === 'custom') {
+    if (wasCustomActive && !customPopover.hidden) {
+      commitCustomPopover();
+    } else {
+      openCustomPopover();
+    }
+  } else if (!customPopover.hidden) {
+    commitCustomPopover();
+  }
+});
+
+[customWInput, customHInput].forEach(inp => {
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitCustomPopover();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelCustomPopover();
+    }
+  });
+});
+
+document.addEventListener('pointerdown', e => {
+  if (customPopover.hidden) return;
+  if (customPopover.contains(e.target)) return;
+  if (e.target.closest('[data-ratio="custom"]')) return;
+  commitCustomPopover();
 });
 
 document.getElementById('style-toggle').addEventListener('click', e => {
